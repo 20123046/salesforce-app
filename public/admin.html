@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>実習管理システム - 管理者画面（完全版・リセット＆マスタ管理対応）</title>
+    <!-- Chart.js ライブラリ -->
+    <script src="/js/chart.umd.js"></script>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            margin: 0;
+            padding: 25px;
+            background-color: #f4f6f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #1b2733;
+            margin-top: 0;
+        }
+
+        .card {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            margin-bottom: 30px;
+            border: 1px solid #eef2f6;
+        }
+
+        /* ログインフォーム */
+        .login-box {
+            max-width: 400px;
+            margin: 100px auto;
+            text-align: center;
+        }
+
+        .login-box input {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            border: 1px solid #d8dde6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        /* ボタン */
+        .btn {
+            background-color: #0070d2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            font-size: 15px;
+            transition: background 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #005fb2;
+        }
+
+        .btn-danger {
+            background-color: #ea001e;
+        }
+
+        .btn-danger:hover {
+            background-color: #ba0016;
+        }
+
+        .btn-secondary {
+            background-color: #706e6b;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a5956;
+        }
+
+        .btn-success {
+            background-color: #10b981;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+        }
+
+        .btn-warning {
+            background-color: #f59e0b;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+
+        .btn-sf {
+            background-color: #00a1e0;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+
+        .btn-sf:hover {
+            background-color: #0084ba;
+        }
+
+        /* レイアウト */
+        .flex-container {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .flex-main {
+            flex: 4;
+            min-width: 800px;
+        }
+
+        .flex-side {
+            flex: 1;
+            min-width: 320px;
+        }
+
+        /* タブ切り替え */
+        .dashboard-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 18px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #475569;
+            font-size: 13.5px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #0070d2;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* アクションバー */
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* テーブル構造 */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 15px;
+            background: white;
+            font-size: 13.5px;
+            table-layout: fixed;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e6ed;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0;
+            padding: 14px 16px;
+            text-align: left;
+        }
+
+        .main-row td {
+            border-bottom: 1px dashed #e2e8f0;
+            padding: 16px;
+            font-weight: bold;
+            color: #1e293b;
+            vertical-align: middle;
+        }
+
+        .sub-row td {
+            border-bottom: 2px solid #cbd5e1;
+            background-color: #fafbfc;
+            padding: 20px 24px;
+            vertical-align: top;
+        }
+
+        tbody:hover {
+            background-color: #f8fafc;
+        }
+
+        #studentTable th:nth-child(1) {
+            width: 12%;
+        }
+
+        #studentTable th:nth-child(2) {
+            width: 18%;
+        }
+
+        #studentTable th:nth-child(3) {
+            width: 23%;
+        }
+
+        #studentTable th:nth-child(4) {
+            width: 23%;
+        }
+
+        #studentTable th:nth-child(5) {
+            width: 24%;
+        }
+
+        .analytics-row td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 14px 16px;
+            vertical-align: middle;
+            color: #1e293b;
+        }
+
+        /* バッジ類 */
+        .choice-badge {
+            display: inline-block;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid #bae6fd;
+        }
+
+        .badge-1st {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
+        }
+
+        .badge-2nd {
+            background-color: #f0fdf4;
+            color: #166534;
+            border-color: #bbf7d0;
+        }
+
+        .badge-3rd {
+            background-color: #fdf2f8;
+            color: #9d174d;
+            border-color: #fbcfe8;
+        }
+
+        .count-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .count-1st {
+            background-color: #e0f2fe;
+            color: #0369a1;
+        }
+
+        .count-total {
+            background-color: #f1f5f9;
+            color: #334155;
+        }
+
+        .over-capacity {
+            background-color: #fee2e2 !important;
+            color: #991b1b !important;
+            border: 1px solid #fecaca;
+        }
+
+        .capacity-input {
+            width: 50px;
+            padding: 4px;
+            text-align: center;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .student-tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .student-tag {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11.5px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        /* カードレイアウト */
+        .reasons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .card-row {
+            display: grid;
+            gap: 16px;
+            width: 100%;
+        }
+
+        .row-1 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .row-2,
+        .row-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .reason-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px 18px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+
+        .reason-card-title {
+            font-size: 11.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .title-1st {
+            color: #0284c7;
+        }
+
+        .title-2nd {
+            color: #22c55e;
+        }
+
+        .title-3rd {
+            color: #ec4899;
+        }
+
+        .title-eval {
+            color: #059669;
+        }
+
+        .title-notes {
+            color: #d97706;
+        }
+
+        .reason-card-body {
+            font-size: 13px;
+            line-height: 1.75;
+            color: #475569;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .reason-card.notes-card {
+            background-color: #fffbeb;
+            border-color: #fef3c7;
+        }
+
+        .reason-card.eval-card {
+            background-color: #ecfdf5;
+            border-color: #a7f3d0;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 240px;
+        }
+
+        /* 検索バー */
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .search-bar button {
+            width: auto;
+            padding: 0 20px;
+        }
+
+        /* 項目管理アイテム */
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .small-btn {
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+
+        .status-connected {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-disconnected {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .no-data-message {
+            padding: 40px;
+            text-align: center;
+            color: #64748b;
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- ログインフォーム -->
+        <div id="loginSection" class="card login-box" style="display: none;">
+            <h2>管理者ログイン</h2>
+            <p style="color:#64748b; font-size: 13px; margin-bottom:20px;">管理者用のアカウント情報を入力してください</p>
+            <div style="color: #ea001e; margin-bottom: 10px; font-weight: bold;" id="loginError"></div>
+            <input type="text" id="adminUser" placeholder="ユーザー名 (デフォルト: admin)">
+            <input type="password" id="adminPass" placeholder="パスワード (デフォルト: password123)">
+            <button class="btn" onclick="handleLogin()">ログイン</button>
+        </div>
+
+        <!-- ダッシュボード本体 -->
+        <div id="dashboardSection" style="display: none;">
+            <div class="header-area">
+                <div>
+                    <h1 style="margin: 0 0 5px 0;">🛡️ 実習管理者ダッシュボード（完全版）</h1>
+                    <div id="sfStatusContainer"></div>
+                </div>
+                <div>
+                    <a href="/"
+                        style="margin-right: 20px; color: #0070d2; text-decoration: none; font-weight: bold; font-size: 14px;">学生用画面を開く
+                        ↗</a>
+                    <button class="btn btn-secondary" style="width: auto; padding: 8px 18px;"
+                        onclick="handleLogout()">ログアウト</button>
+                </div>
+            </div>
+
+            <!-- タブ切り替えボタン -->
+            <div class="dashboard-tabs">
+                <button class="tab-btn active" onclick="switchTab('students')">👤 学生別 希望状況・詳細</button>
+                <button class="tab-btn" onclick="switchTab('analytics')">📊 企業別・定員＆人気分析</button>
+                <button class="tab-btn" onclick="switchTab('unsubmitted')">⚠️ 未提出者チェック</button>
+                <button class="tab-btn" onclick="switchTab('matching')">🎯 マッチング自動シミュレーション</button>
+                <button class="tab-btn" onclick="switchTab('settings')"
+                    style="background-color: #cbd5e1; color: #334155;">⚙️ 年度切替・データリセット</button>
+            </div>
+
+            <div class="flex-container">
+                <!-- メインコンテンツ -->
+                <div class="flex-main card">
+
+                    <!-- タブ1：学生別一覧 -->
+                    <div id="tabStudents" class="tab-content active">
+                        <div class="action-bar">
+                            <h2>👤 学生希望状況の確認</h2>
+                            <button class="btn btn-success" style="width: auto; padding: 8px 16px; font-size: 13px;"
+                                onclick="exportStudentsCSV()">📥 CSVエクスポート</button>
+                        </div>
+                        <div class="search-bar">
+                            <input type="text" id="searchInput" placeholder="漢字1文字や学籍番号の一部を入力（リアルタイム絞り込み）"
+                                oninput="filterStudentsLocally()">
+                            <button class="btn" onclick="filterStudentsLocally()">検索</button>
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table id="studentTable">
+                                <thead>
+                                    <tr>
+                                        <th>学籍番号</th>
+                                        <th>氏名</th>
+                                        <th>第1希望</th>
+                                        <th>第2希望</th>
+                                        <th>第3希望</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px;">
+                                            データを読み込んでいます...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- タブ2：企業別集計・定員オーバーチェック -->
+                    <div id="tabAnalytics" class="tab-content">
+                        <div class="action-bar">
+                            <h2>📊 企業（実習先）別の希望集中度・定員チェック</h2>
+                            <button class="btn btn-success" style="width: auto; padding: 8px 16px; font-size: 13px;"
+                                onclick="exportAnalyticsCSV()">📥 集計CSV出力</button>
+                        </div>
+                        <p style="color: #64748b; font-size: 13.5px; margin-bottom: 20px;">
+                            各企業ごとの定員に対し、第1希望の人数が超過している場合は自動で赤字警告が表示されます。
+                        </p>
+                        <div style="overflow-x: auto;">
+                            <table id="analyticsTable">
+                                <thead>
+                                    <tr>
+                                        <th>実習先（企業）名称</th>
+                                        <th>定員数</th>
+                                        <th>第1希望人数</th>
+                                        <th>総希望数</th>
+                                        <th>希望している学生一覧</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analyticsTableBody">
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; color: #94a3b8; padding: 40px;">
+                                            集計中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- タブ3：未提出者一覧 -->
+                    <div id="tabUnsubmitted" class="tab-content">
+                        <div class="action-bar">
+                            <h2>⚠️ 未提出者・未回答の学生一覧</h2>
+                            <button class="btn btn-secondary" style="width: auto; padding: 8px 16px; font-size: 13px;"
+                                onclick="copyUnsubmittedList()">📋 リストをコピー</button>
+                        </div>
+                        <p style="color: #64748b; font-size: 13.5px; margin-bottom: 20px;">
+                            サイドバーの「対象学生マスタ」に登録されている学生のうち、まだ希望調査データが登録されていない学生を抽出します。
+                        </p>
+                        <div style="overflow-x: auto;">
+                            <table id="unsubmittedTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25%;">学籍番号</th>
+                                        <th style="width: 35%;">氏名</th>
+                                        <th style="width: 40%;">ステータス</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="unsubmittedTableBody">
+                                    <tr>
+                                        <td colspan="3" style="text-align: center; color: #94a3b8; padding: 40px;">
+                                            確認中...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- タブ4：自動マッチングシミュレーション -->
+                    <div id="tabMatching" class="tab-content">
+                        <div class="action-bar">
+                            <h2>🎯 マッチング自動割り当てシミュレーション</h2>
+                            <div>
+                                <button class="btn btn-warning"
+                                    style="width: auto; padding: 10px 16px; margin-right: 10px; font-size: 13px;"
+                                    onclick="resetSimulationResults()">🔄 結果をリセット</button>
+                                <button class="btn btn-success" style="width: auto; padding: 10px 20px;"
+                                    onclick="runMatchingSimulation()">⚡ シミュレーション実行</button>
+                            </div>
+                        </div>
+                        <p style="color: #64748b; font-size: 13.5px; margin-bottom: 20px;">
+                            一回確認用警告が表示された後、最新のデータべース（希望調査・定員）をもとにシミュレーション結果を生成します。
+                        </p>
+                        <div style="overflow-x: auto;">
+                            <table id="matchingTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 15%;">学籍番号</th>
+                                        <th style="width: 25%;">氏名</th>
+                                        <th style="width: 30%;">割り当て先企業</th>
+                                        <th style="width: 30%;">マッチ状況</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="matchingTableBody">
+                                    <tr>
+                                        <td colspan="4" style="text-align: center; color: #94a3b8; padding: 40px;">
+                                            「シミュレーション実行」ボタンを押してください。</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- タブ5：年度切替・データリセット -->
+                    <!-- 管理画面の操作パネル例 -->
+                    <div class="admin-panel"
+                        style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h3>⚙️ 年度管理・データ運用</h3>
+                        <p>新年度の運用を開始する際は、以下のボタンから過去データをリセットし、新しい提出データの受付を開始してください。</p>
+                        <button id="resetYearBtn" onclick="resetAcademicYear()"
+                            style="background: #e74c3c; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                            🧹 新年度データにリセットする
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- サイドバー：学生マスタ管理 & 臨地先管理 & スキル管理 -->
+            <div class="flex-side">
+                <!-- 学生マスタ管理（未提出者チェックのベース） -->
+                <div class="card">
+                    <h2>👥 対象学生マスタ登録</h2>
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 12px;">未提出者の正確な抽出を行うため、対象の学生を事前登録します。</p>
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" id="newStudentNumber" placeholder="学籍番号 (例: 2026001)"
+                            style="width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                        <input type="text" id="newStudentName" placeholder="氏名 (例: 山田 太郎)"
+                            style="width: 100%; padding: 8px; box-sizing: border-box; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                        <button class="btn" style="padding: 8px;" onclick="addStudentMaster()">学生を追加する</button>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 15px 0;">
+                    <h3 style="font-size: 15px; color: #475569;">登録済み学生一覧 (<span id="masterCount">0</span>名)</h3>
+                    <div id="studentMasterList"
+                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🏥 臨地先の管理</h2>
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" id="newHospitalName" placeholder="新しい実習先名称"
+                            style="width: 100%; padding: 10px; box-sizing: border-box; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+                        <button class="btn" onclick="addHospital()">実習先を追加する</button>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    <h3 style="font-size: 16px; color: #475569;">現在の実習先一覧</h3>
+                    <div id="hospitalList"
+                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🎯 希望スキルの管理</h2>
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" id="newSkillName" placeholder="新しいスキル名称"
+                            style="width: 100%; padding: 10px; box-sizing: border-box; margin-bottom: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+                        <button class="btn" onclick="addSkill()">スキルを追加する</button>
+                    </div>
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+                    <h3 style="font-size: 16px; color: #475569;">現在のスキル一覧</h3>
+                    <div id="skillList"
+                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <script>
+        window.skillMaster = [];
+        window.hospitalMaster = [];
+        window.allStudentsCache = [];
+        window.studentMasterCache = [
+            { studentNumber: "2026001", studentName: "山田 太郎" },
+            { studentNumber: "2026002", studentName: "佐藤 花子" },
+            { studentNumber: "2026003", studentName: "鈴木 一郎" }
+        ]; // 事前登録用マスタの初期データ例
+        window.hospitalCapacities = {};
+        window.simulationResultsCache = null; // シミュレーション結果キャッシュ
+
+        document.addEventListener("DOMContentLoaded", () => {
+            checkAdminAuth();
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            if (tabName === 'students') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tabStudents').classList.add('active');
+            } else if (tabName === 'analytics') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tabAnalytics').classList.add('active');
+                renderAnalyticsTable();
+            } else if (tabName === 'unsubmitted') {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tabUnsubmitted').classList.add('active');
+                renderUnsubmittedTable();
+            } else if (tabName === 'matching') {
+                document.querySelectorAll('.tab-btn')[3].classList.add('active');
+                document.getElementById('tabMatching').classList.add('active');
+            } else if (tabName === 'settings') {
+                document.querySelectorAll('.tab-btn')[4].classList.add('active');
+                document.getElementById('tabSettings').classList.add('active');
+            }
+        }
+
+        function checkAdminAuth() {
+            fetch('/api/admin/check')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.authenticated) {
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('dashboardSection').style.display = 'block';
+
+                        updateSfStatus(data.sfConnected);
+                        loadHospitalList();
+                        loadSkillList();
+                        loadStudentMaster();
+                        fetchAllStudents();
+                    } else {
+                        document.getElementById('loginSection').style.display = 'block';
+                        document.getElementById('dashboardSection').style.display = 'none';
+                    }
+                });
+        }
+
+        function fetchAllStudents() {
+            const table = document.getElementById('studentTable');
+            table.querySelectorAll('tbody').forEach(tb => tb.remove());
+
+            const loadingTbody = document.createElement('tbody');
+            loadingTbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 40px;">データを読み込んでいます...</td></tr>';
+            table.appendChild(loadingTbody);
+
+            fetch(`/api/admin/students?searchNumber=`)
+                .then(res => res.json())
+                .then(records => {
+                    loadingTbody.remove();
+                    window.allStudentsCache = records || [];
+                    renderStudentTable(window.allStudentsCache);
+                })
+                .catch(err => {
+                    loadingTbody.remove();
+                    console.error(err);
+                });
+        }
+
+        function filterStudentsLocally() {
+            const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+            if (!keyword) {
+                renderStudentTable(window.allStudentsCache);
+                return;
+            }
+            const filtered = window.allStudentsCache.filter(r => {
+                const sNum = (r.Student_Number__c || '').toLowerCase();
+                const sName = (r.Student_Name__c || '').toLowerCase();
+                return sNum.includes(keyword) || sName.includes(keyword);
+            });
+            renderStudentTable(filtered);
+        }
+
+        /* ---------------- 学生マスタ管理 ---------------- */
+        function loadStudentMaster() {
+            const listDiv = document.getElementById('studentMasterList');
+            const countSpan = document.getElementById('masterCount');
+            listDiv.innerHTML = '';
+            countSpan.textContent = window.studentMasterCache.length;
+
+            if (window.studentMasterCache.length === 0) {
+                listDiv.innerHTML = '<div style="padding:15px; text-align:center; color:#94a3b8; font-size:12px;">登録学生がいません</div>';
+                return;
+            }
+
+            window.studentMasterCache.forEach((m, idx) => {
+                const item = document.createElement('div');
+                item.className = 'item-row';
+                item.innerHTML = `<span style="font-weight: 500; color: #334155; font-size:12.5px;">${m.studentNumber} : ${m.studentName}</span><button class="small-btn btn-danger" onclick="deleteStudentMaster(${idx})">削除</button>`;
+                listDiv.appendChild(item);
+            });
+        }
+
+        function addStudentMaster() {
+            const numInput = document.getElementById('newStudentNumber');
+            const nameInput = document.getElementById('newStudentName');
+            const num = numInput.value.trim();
+            const name = nameInput.value.trim();
+
+            if (!num || !name) {
+                alert("学籍番号と氏名両方を入力してください。");
+                return;
+            }
+
+            window.studentMasterCache.push({ studentNumber: num, studentName: name });
+            numInput.value = '';
+            nameInput.value = '';
+            loadStudentMaster();
+            alert(`✅ 学生「${name} (${num})」をマスタに登録しました。`);
+        }
+
+        function deleteStudentMaster(idx) {
+            window.studentMasterCache.splice(idx, 1);
+            loadStudentMaster();
+        }
+
+        /* ---------------- 1. 企業別集計・定員チェック ---------------- */
+        function renderAnalyticsTable() {
+            const tbody = document.getElementById('analyticsTableBody');
+            tbody.innerHTML = '';
+
+            if (!window.hospitalMaster || window.hospitalMaster.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="no-data-message">実習先マスターが読み込まれていません。</td></tr>';
+                return;
+            }
+
+            const stats = {};
+            window.hospitalMaster.forEach(hospital => {
+                if (window.hospitalCapacities[hospital] === undefined) {
+                    window.hospitalCapacities[hospital] = 5;
+                }
+                stats[hospital] = { firstCount: 0, totalCount: 0, students: [] };
+            });
+
+            window.allStudentsCache.forEach(student => {
+                const name = student.Student_Name__c || '氏名不明';
+                const f1 = student.FirstChoice__c;
+                const f2 = student.SecondChoice__c;
+                const f3 = student.ThirdChoice__c;
+
+                [f1, f2, f3].forEach((choice, index) => {
+                    if (choice && stats[choice]) {
+                        stats[choice].totalCount++;
+                        if (index === 0) stats[choice].firstCount++;
+                        if (!stats[choice].students.includes(name)) {
+                            stats[choice].students.push(name);
+                        }
+                    }
+                });
+            });
+
+            const sortedHospitals = Object.keys(stats).sort((a, b) => stats[b].firstCount - stats[a].firstCount);
+
+            sortedHospitals.forEach(hospital => {
+                const data = stats[hospital];
+                const capacity = window.hospitalCapacities[hospital];
+                const isOver = data.firstCount > capacity;
+
+                const row = document.createElement('tr');
+                row.className = 'analytics-row';
+
+                const studentTagsHtml = data.students.length > 0
+                    ? `<div class="student-tag-list">${data.students.map(s => `<span class="student-tag">${s}</span>`).join('')}</div>`
+                    : '<span style="color:#94a3b8; font-size:12px;">（希望者なし）</span>';
+
+                row.innerHTML = `
+                    <td style="font-weight: bold; color: #1e293b;">🏢 ${hospital}</td>
+                    <td style="text-align: center;"><input type="number" class="capacity-input" value="${capacity}" onchange="updateCapacity('${hospital}', this.value)"> 人</td>
+                    <td style="text-align: center;"><span class="count-badge ${isOver ? 'over-capacity' : 'count-1st'}">${data.firstCount} 人 ${isOver ? '⚠️超過' : ''}</span></td>
+                    <td style="text-align: center;"><span class="count-badge count-total">${data.totalCount} 人</span></td>
+                    <td>${studentTagsHtml}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateCapacity(hospital, val) {
+            const num = parseInt(val, 10);
+            if (!isNaN(num)) {
+                window.hospitalCapacities[hospital] = num;
+                renderAnalyticsTable();
+            }
+        }
+
+        /* ---------------- 2. 未提出者チェック ---------------- */
+        function renderUnsubmittedTable() {
+            const tbody = document.getElementById('unsubmittedTableBody');
+            tbody.innerHTML = '';
+
+            const submittedNumbers = new Set(window.allStudentsCache.map(s => s.Student_Number__c));
+            const unsubmitted = window.studentMasterCache.filter(m => !submittedNumbers.has(m.studentNumber));
+
+            if (unsubmitted.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="no-data-message" style="color: #10b981;">🎉 登録されているマスタの学生は全員提出済みです！</td></tr>';
+                return;
+            }
+
+            unsubmitted.forEach(s => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="color: #0070d2; font-weight: bold;">${s.studentNumber}</td>
+                    <td style="font-weight: bold;">${s.studentName}</td>
+                    <td><span class="count-badge" style="background-color: #fee2e2; color: #991b1b;">未提出（回答が届いていません）</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function copyUnsubmittedList() {
+            const submittedNumbers = new Set(window.allStudentsCache.map(s => s.Student_Number__c));
+            const unsubmitted = window.studentMasterCache.filter(m => !submittedNumbers.has(m.studentNumber));
+
+            if (unsubmitted.length === 0) {
+                alert("未提出者はいません。");
+                return;
+            }
+            const text = unsubmitted.map(s => `${s.studentNumber}\t${s.studentName}`).join('\n');
+            navigator.clipboard.writeText(text).then(() => {
+                alert("📋 未提出者のリスト（学籍番号・氏名）をクリップボードにコピーしました。");
+            });
+        }
+
+        /* ---------------- 3. マッチング自動シミュレーション ---------------- */
+        function runMatchingSimulation() {
+            const isConfirmed = confirm("⚠️ 【確認】\n最新のデータベース（希望調査・実習先定員）からデータを取得し、シミュレーションを実行します。\n（以前の結果はクリアされ、新しく割り当て直されます）\n\n実行してもよろしいですか？");
+            if (!isConfirmed) return;
+
+            const tbody = document.getElementById('matchingTableBody');
+            tbody.innerHTML = '';
+
+            if (window.allStudentsCache.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data-message">有効な希望調査データが存在しません。</td></tr>';
+                return;
+            }
+
+            const remainingCapacities = { ...window.hospitalCapacities };
+            const results = [];
+
+            window.allStudentsCache.forEach(student => {
+                const name = student.Student_Name__c || '氏名不明';
+                const sNum = student.Student_Number__c || '-';
+                const f1 = student.FirstChoice__c;
+                const f2 = student.SecondChoice__c;
+                const f3 = student.ThirdChoice__c;
+
+                let assigned = null;
+                let status = '';
+
+                if (f1 && remainingCapacities[f1] > 0) {
+                    remainingCapacities[f1]--;
+                    assigned = f1;
+                    status = '✅ 第1希望にマッチ';
+                } else if (f2 && remainingCapacities[f2] > 0) {
+                    remainingCapacities[f2]--;
+                    assigned = f2;
+                    status = '⚠️ 第2希望にスライド';
+                } else if (f3 && remainingCapacities[f3] > 0) {
+                    remainingCapacities[f3]--;
+                    assigned = f3;
+                    status = '⚠️ 第3希望にスライド';
+                } else {
+                    assigned = '（未割当・要手動調整）';
+                    status = '❌ 希望枠すべて定員オーバー';
+                }
+
+                results.push({ sNum, name, assigned, status });
+            });
+
+            window.simulationResultsCache = results;
+
+            results.forEach(res => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="color: #0070d2; font-weight: bold;">${res.sNum}</td>
+                    <td style="font-weight: bold;">${res.name}</td>
+                    <td style="font-weight: bold; color: #1e293b;">🏢 ${res.assigned}</td>
+                    <td><span style="font-size: 12.5px; font-weight: bold;">${res.status}</span></td>
+                `;
+                tbody.appendChild(row);
+            });
+            alert("🎯 新しいデータベースからのマッチングシミュレーションが完了しました！");
+        }
+
+        function resetSimulationResults() {
+            const isConfirmed = confirm("⚠️ 【確認】\n現在のシミュレーション結果をリセット（クリア）します。\nよろしいですか？");
+            if (!isConfirmed) return;
+
+            window.simulationResultsCache = null;
+            const tbody = document.getElementById('matchingTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 40px;">「シミュレーション実行」ボタンを押してください。</td></tr>';
+            alert("🔄 シミュレーション結果をリセットしました。");
+        }
+
+        /* ---------------- 4. CSVエクスポート機能 ---------------- */
+        function exportStudentsCSV() {
+            if (!window.allStudentsCache || window.allStudentsCache.length === 0) {
+                alert("エクスポートするデータがありません。");
+                return;
+            }
+            let csv = '\uFEFF学籍番号,氏名,第1希望,第1希望理由,第2希望,第2希望理由,第3希望,第3希望理由,備考\n';
+            window.allStudentsCache.forEach(s => {
+                const row = [
+                    s.Student_Number__c || '',
+                    s.Student_Name__c || '',
+                    s.FirstChoice__c || '',
+                    `"${(s.FirstChoice_Reason__c || '').replace(/"/g, '""')}"`,
+                    s.SecondChoice__c || '',
+                    `"${(s.SecondChoice_Reason__c || '').replace(/"/g, '""')}"`,
+                    s.ThirdChoice__c || '',
+                    `"${(s.ThirdChoice_Reason__c || '').replace(/"/g, '""')}"`,
+                    `"${(s.Notes__c || '').replace(/"/g, '""')}"`
+                ];
+                csv += row.join(',') + '\n';
+            });
+            downloadCSV(csv, 'student_choices_export.csv');
+        }
+
+        function exportAnalyticsCSV() {
+            let csv = '\uFEFF実習先名称,定員,第1希望人数,総希望数\n';
+            window.hospitalMaster.forEach(h => {
+                const cap = window.hospitalCapacities[h] || 5;
+                let fCount = 0;
+                let tCount = 0;
+                window.allStudentsCache.forEach(s => {
+                    if (s.FirstChoice__c === h) fCount++;
+                    if (s.FirstChoice__c === h || s.SecondChoice__c === h || s.ThirdChoice__c === h) tCount++;
+                });
+                csv += `"${h}",${cap},${fCount},${tCount}\n`;
+            });
+            downloadCSV(csv, 'hospital_analytics_export.csv');
+        }
+
+        function downloadCSV(csvContent, fileName) {
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /* ---------------- 学生テーブル・チャート描画 ---------------- */
+        function renderStudentTable(records) {
+            const table = document.getElementById('studentTable');
+            table.querySelectorAll('tbody').forEach(tb => tb.remove());
+
+            if (!records || records.length === 0) {
+                const emptyTbody = document.createElement('tbody');
+                emptyTbody.innerHTML = `<tr><td colspan="5" class="no-data-message"><i>🔍</i> 一致する学生が見つかりませんでした。</td></tr>`;
+                table.appendChild(emptyTbody);
+                return;
+            }
+
+            records.forEach((r, idx) => {
+                const rawEvalJson = r.Skill_Evaluation_JSON__c;
+                let parsedEval = null;
+                if (rawEvalJson) {
+                    try { parsedEval = typeof rawEvalJson === 'string' ? JSON.parse(rawEvalJson) : rawEvalJson; } catch (e) { }
+                }
+
+                const canvasId = `evalChart_${idx}_${r.Student_Number__c || idx}`;
+                const studentBody = document.createElement('tbody');
+
+                studentBody.innerHTML = `
+                    <tr class="main-row">
+                        <td style="color: #0070d2;">${r.Student_Number__c || '-'}</td>
+                        <td>${r.Student_Name__c || '-'}</td>
+                        <td><span class="choice-badge badge-1st">1️⃣ ${r.FirstChoice__c || '-'}</span></td>
+                        <td><span class="choice-badge badge-2nd">2️⃣ ${r.SecondChoice__c || '-'}</span></td>
+                        <td><span class="choice-badge badge-3rd">3️⃣ ${r.ThirdChoice__c || '-'}</span></td>
+                    </tr>
+                    <tr class="sub-row">
+                        <td colspan="5">
+                            <div class="reasons-container">
+                                <div class="card-row row-1">
+                                    <div class="reason-card"><div class="reason-card-title title-1st">📝 第1希望 志望理由</div><div class="reason-card-body">${r.FirstChoice_Reason__c || '（未入力）'}</div></div>
+                                    <div class="reason-card"><div class="reason-card-title title-2nd">📝 第2希望 志望理由</div><div class="reason-card-body">${r.SecondChoice_Reason__c || '（未入力）'}</div></div>
+                                    <div class="reason-card"><div class="reason-card-title title-3rd">📝 第3希望 志望理由</div><div class="reason-card-body">${r.ThirdChoice_Reason__c || '（未入力）'}</div></div>
+                                </div>
+                                <div class="card-row row-2">
+                                    <div class="reason-card eval-card"><div class="reason-card-title title-eval">📊 スキル自己評価</div><div class="reason-card-body">${parsedEval ? `<div class="chart-container"><canvas id="${canvasId}"></canvas></div>` : '<span style="color:#94a3b8;">（評価データなし）</span>'}</div></div>
+                                </div>
+                                <div class="card-row row-3">
+                                    <div class="reason-card notes-card"><div class="reason-card-title title-notes">💡 備考・要望</div><div class="reason-card-body">${r.Notes__c || '（特になし）'}</div></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>`;
+                table.appendChild(studentBody);
+
+                if (parsedEval) {
+                    setTimeout(() => {
+                        const labels = (window.skillMaster && window.skillMaster.length > 0) ? window.skillMaster : Object.keys(parsedEval);
+                        const values = Array.isArray(parsedEval) ? parsedEval : Object.values(parsedEval);
+                        renderSkillChart(canvasId, labels, values);
+                    }, 50);
+                }
+            });
+        }
+
+        function renderSkillChart(canvasId, labels, dataValues) {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '自己評価 (5段階)',
+                        data: dataValues,
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#059669'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0, max: 5,
+                            ticks: { stepSize: 1, display: true, showLabelBackdrop: false },
+                            grid: { color: "#e2e8f0" },
+                            pointLabels: { font: { size: 11 }, color: "#475569" }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        function updateSfStatus(isConnected) {
+            const container = document.getElementById('sfStatusContainer');
+            if (isConnected) {
+                container.innerHTML = `<span class="status-badge status-connected"><span class="dot" style="background-color: #10b981;"></span>Salesforce 連携済み</span>`;
+            } else {
+                container.innerHTML = `<span class="status-badge status-disconnected" style="margin-right: 10px;"><span class="dot" style="background-color: #ef4444;"></span>Salesforce 未連携</span><a href="/admin/login-sf" class="btn-sf">🔑 Salesforceと連携する</a>`;
+            }
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('adminUser').value;
+            const password = document.getElementById('adminPass').value;
+            const errorDiv = document.getElementById('loginError');
+
+            fetch('/api/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) { checkAdminAuth(); }
+                    else { errorDiv.textContent = data.message; }
+                })
+                .catch(() => { errorDiv.textContent = "接続エラーが発生しました"; });
+        }
+
+        function handleLogout() {
+            fetch('/api/admin/logout', { method: 'POST' }).then(() => checkAdminAuth());
+        }
+
+        /* ---------------- 臨地先・スキル管理 ---------------- */
+        function loadHospitalList() {
+            fetch('/api/hospitals')
+                .then(res => res.json())
+                .then(hospitals => {
+                    window.hospitalMaster = hospitals || [];
+                    window.hospitalMaster.forEach(h => {
+                        if (window.hospitalCapacities[h] === undefined) window.hospitalCapacities[h] = 5;
+                    });
+                    const listDiv = document.getElementById('hospitalList');
+                    listDiv.innerHTML = '';
+                    hospitals.forEach(hospital => {
+                        const item = document.createElement('div');
+                        item.className = 'item-row';
+                        item.innerHTML = `<span style="font-weight: 500; color: #334155;">🏢 ${hospital}</span><button class="small-btn btn-danger" onclick="deleteHospital('${hospital}')">削除</button>`;
+                        listDiv.appendChild(item);
+                    });
+                });
+        }
+
+        function addHospital() {
+            const input = document.getElementById('newHospitalName');
+            const name = input.value.trim();
+            if (!name) return;
+
+            fetch('/api/admin/hospitals', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            })
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) alert(`⚠️ 注意: ${data.error || '実習先の追加に失敗しました。'}`);
+                    else alert(`✅ 実習先「${name}」を追加しました。`);
+                    input.value = '';
+                    loadHospitalList();
+                })
+                .catch(() => alert("❌ サーバー通信エラーが発生しました。"));
+        }
+
+        function deleteHospital(name) {
+            if (!confirm(`「${name}」を実習先候補から削除しますか？`)) return;
+            fetch('/api/admin/hospitals', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            })
+                .then(res => res.json())
+                .then(() => loadHospitalList());
+        }
+
+        function loadSkillList() {
+            fetch('/api/skills')
+                .then(res => res.json())
+                .then(skills => {
+                    window.skillMaster = skills;
+                    const listDiv = document.getElementById('skillList');
+                    listDiv.innerHTML = '';
+                    skills.forEach(skill => {
+                        const item = document.createElement('div');
+                        item.className = 'item-row';
+                        item.innerHTML = `<span style="font-weight: 500; color: #334155;">🎯 ${skill}</span><button class="small-btn btn-danger" onclick="deleteSkill('${skill}')">削除</button>`;
+                        listDiv.appendChild(item);
+                    });
+                });
+        }
+
+        function addSkill() {
+            const input = document.getElementById('newSkillName');
+            const name = input.value.trim();
+            if (!name) return;
+
+            fetch('/api/admin/skills', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            })
+                .then(async res => {
+                    const data = await res.json();
+                    if (!res.ok) alert(`⚠️ 注意: ${data.error || 'スキルの追加に失敗しました。'}`);
+                    else alert(`✅ スキル「${name}」を追加しました。`);
+                    input.value = '';
+                    loadSkillList();
+                })
+                .catch(() => alert("❌ サーバー通信エラーが発生しました。"));
+        }
+
+        function deleteSkill(name) {
+            if (!confirm(`「${name}」をスキル候補から削除しますか？`)) return;
+            fetch('/api/admin/skills', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            })
+                .then(res => res.json())
+                .then(() => loadSkillList());
+        }
+
+        /* ---------------- 設定タブ用の新年度リセット（一本化） ---------------- */
+        async function resetAcademicYear() {
+            if (!confirm("【警告】本当に新年度にリセットしますか？\nこれ以降に提出されたデータのみが新しい集計の対象になります。")) {
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/admin/reset-year', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    alert(data.message);
+                    location.reload(); // 画面を更新して新しい状態に
+                } else {
+                    alert("リセットに失敗しました: " + data.message);
+                }
+            } catch (e) {
+                alert("通信エラーが発生しました。");
+            }
+        }
+    </script>
+</body>
+
+</html>

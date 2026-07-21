@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  app:
+    image: node:18-alpine
+    container_name: sf_node_app
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app # 🌟ここがカレントフォルダを指していることを再確認
+    working_dir: /app
+    command: sh -c "npm install express axios express-session && node server.js"

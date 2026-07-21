@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学生臨地先希望登録</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f7f6; }
+        .container { max-width: 600px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: auto; }
+        h2 { color: #333; text-align: center; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #444; }
+        input[type="text"], select, textarea { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+        .reason-group { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #0070d2; border-radius: 4px; margin-bottom: 20px; }
+        .reason-group h3 { margin: 0 0 10px 0; font-size: 15px; color: #0070d2; }
+        .skill-group { background-color: #f0f7ff; padding: 15px; border-left: 4px solid #1589ee; border-radius: 4px; margin-bottom: 20px; }
+        .skill-group h3 { margin: 0 0 10px 0; font-size: 15px; color: #1589ee; }
+        .skill-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #d8dda6; }
+        .skill-item:last-child { border-bottom: none; }
+        .skill-label { font-weight: bold; color: #333; flex: 1; }
+        .rating-options { display: flex; gap: 12px; }
+        .rating-options label { font-weight: normal; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 3px; }
+        button { background-color: #0070d2; color: white; padding: 12px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; }
+        button:hover { background-color: #005fb2; }
+        .status-box { margin-bottom: 20px; text-align: center; padding: 12px; border-radius: 4px; font-weight: bold; }
+        .unauth { background: #fff3cd; color: #856404; }
+        .auth { background: #d4edda; color: #155724; }
+        .login-btn { background:#0070d2; color:white; padding:8px 15px; text-decoration:none; border-radius:4px; font-size:14px; display:inline-block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>臨地先希望 登録</h2>
+    
+    <div id="authStatus"></div>
+
+    <form action="/submit" method="POST" id="wishForm">
+        <!-- 💡 送信用隠しフィールドを追加 -->
+        <input type="hidden" name="skillEvaluationJson" id="hiddenSkillJson">
+        <input type="hidden" name="skills" id="hiddenSkill">
+
+        <div class="form-group">
+            <label for="studentNameInput">学生氏名:</label>
+            <input type="text" id="studentNameInput" name="studentName" placeholder="例: 山田 太郎" required>
+        </div>
+        <div class="form-group">
+            <label for="studentNumberInput">学籍番号:</label>
+            <input type="text" id="studentNumberInput" name="studentNumber" placeholder="例: 20120000" required>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+        <!-- 💉 希望Skill__c評価セクション -->
+        <div class="skill-group">
+            <h3>【自己スキル評価】</h3>
+            <p style="font-size:12px; color:#666; margin-top:-5px; margin-bottom:15px;">※ 1: 低い 〜 5: 非常に高い で評価してください</p>
+            <div id="skillsContainer">
+                <p style="color:#888; text-align:center;">Skill__c 一覧を読み込み中...</p>
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+        <div class="reason-group">
+            <h3>【第1希望】</h3>
+            <div class="form-group">
+                <label for="firstChoiceSelect">希望する臨地先:</label>
+                <select name="firstChoice" id="firstChoiceSelect" required>
+                    <option value="">選択肢をロード中...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="firstChoiceReason">志望理由（第1希望）:</label>
+                <textarea id="firstChoiceReason" name="firstChoiceReason" placeholder="第1希望として選んだ理由を記入してください" required></textarea>
+            </div>
+        </div>
+
+        <div class="reason-group">
+            <h3>【第2希望】</h3>
+            <div class="form-group">
+                <label for="secondChoiceSelect">希望する臨地先:</label>
+                <select name="secondChoice" id="secondChoiceSelect" required>
+                    <option value="">選択肢をロード中...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="secondChoiceReason">志望理由（第2希望）:</label>
+                <textarea id="secondChoiceReason" name="secondChoiceReason" placeholder="第2希望として選んだ理由を記入してください" required></textarea>
+            </div>
+        </div>
+
+        <div class="reason-group">
+            <h3>【第3希望】</h3>
+            <div class="form-group">
+                <label for="thirdChoiceSelect">希望する臨地先:</label>
+                <select name="thirdChoice" id="thirdChoiceSelect" required>
+                    <option value="">選択肢をロード中...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="thirdChoiceReason">志望理由（第3希望）:</label>
+                <textarea id="thirdChoiceReason" name="thirdChoiceReason" placeholder="第3希望として選んだ理由を記入してください" required></textarea>
+            </div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+
+        <div class="form-group">
+            <label for="notesInput">備考（実習先選定で重視してほしいこと等）:</label>
+            <textarea id="notesInput" name="notes" placeholder="例: 自宅通学のため、〇〇エリアの配属を強く希望します。"></textarea>
+        </div>
+        
+        <div id="buttonArea"></div>
+    </form>
+</div>
+
+<script>
+    // ログイン状態の確認
+    fetch('/api/check-auth')
+        .then(res => res.json())
+        .then(data => {
+            const authStatus = document.getElementById('authStatus');
+            const buttonArea = document.getElementById('buttonArea');
+            
+            if (data.authenticated) {
+                authStatus.innerHTML = `<div class="status-box auth">✓ Salesforce連携済み</div>`;
+                buttonArea.innerHTML = `<button type="submit">Salesforceへ送信</button>`;
+            } else {
+                authStatus.innerHTML = `
+                    <div class="status-box unauth">
+                        ⚠️ Salesforceと未連携です<br>
+                        <a href="/login" class="login-btn">Salesforceでログイン</a>
+                    </div>`;
+                buttonArea.innerHTML = `<button type="submit" disabled style="background-color: #cccccc; cursor: not-allowed;">先にログインしてください</button>`;
+            }
+            
+            loadHospitalLists();
+            loadSkillLists();
+        });
+
+    // 企業一覧の取得
+    function loadHospitalLists() {
+        fetch('/api/hospitals')
+            .then(res => res.json())
+            .then(hospitals => {
+                const selects = [
+                    document.getElementById('firstChoiceSelect'),
+                    document.getElementById('secondChoiceSelect'),
+                    document.getElementById('thirdChoiceSelect')
+                ];
+
+                selects.forEach(select => {
+                    select.innerHTML = '<option value="">-- 実習先を選択してください --</option>';
+                    hospitals.forEach(hospital => {
+                        const option = document.createElement('option');
+                        option.value = hospital;
+                        option.textContent = hospital;
+                        select.appendChild(option);
+                    });
+                });
+            })
+            .catch(err => {
+                console.error("実習先リストの取得失敗:", err);
+                setFallbackOptions("選択肢のロードに失敗しました");
+            });
+    }
+
+    // 💉 Skill__c の一覧取得と評価ラジオボタン（1〜5）の動的セット
+    function loadSkillLists() {
+        fetch('/api/skills')
+            .then(res => res.json())
+            .then(skills => {
+                const container = document.getElementById('skillsContainer');
+                if (!skills || skills.length === 0) {
+                    container.innerHTML = '<p style="color:#888;">登録されている Skill__c はありません。</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                skills.forEach(skill => {
+                    const skillName = typeof skill === 'object' ? (skill.Name || skill.Skill__c) : skill;
+
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'skill-item';
+                    
+                    let radiosHtml = '';
+                    for (let i = 1; i <= 5; i++) {
+                        radiosHtml += `
+                            <label>
+                                <input type="radio" class="skill-radio" data-skill-name="${skillName}" name="skill_eval_${skillName}" value="${i}" ${i === 3 ? 'checked' : ''} required> ${i}
+                            </label>
+                        `;
+                    }
+
+                    itemDiv.innerHTML = `
+                        <span class="skill-label">${skillName}</span>
+                        <div class="rating-options">
+                            ${radiosHtml}
+                        </div>
+                    `;
+                    container.appendChild(itemDiv);
+                });
+            })
+            .catch(err => {
+                console.error("Skill__c リストの取得失敗:", err);
+                document.getElementById('skillsContainer').innerHTML = '<p style="color:red;">Skill__c の読み込みに失敗しました。</p>';
+            });
+    }
+
+    // 💡 フォーム送信時にスキルデータ（JSON ＆ マルチピック用）を生成して隠しフィールドにセット
+    document.getElementById('wishForm').addEventListener('submit', function(e) {
+        const evaluations = {};
+        const selectedSkills = [];
+
+        // チェックされているラジオボタンを全て取得
+        const checkedRadios = document.querySelectorAll('.skill-radio:checked');
+        
+        checkedRadios.forEach(radio => {
+            const skillName = radio.getAttribute('data-skill-name');
+            const score = parseInt(radio.value, 10);
+
+            // 1. JSON用オブジェクトを作成 {"採血": 3, "注射": 4}
+            evaluations[skillName] = score;
+
+            // 2. マルチピックリスト用配列を作成
+            selectedSkills.push(skillName);
+        });
+
+        // 隠しフィールドへ値をセット
+        document.getElementById('hiddenSkillJson').value = JSON.stringify(evaluations);
+        document.getElementById('hiddenSkill').value = selectedSkills.join(';');
+    });
+
+    function setFallbackOptions(message) {
+        const ids = ['firstChoiceSelect', 'secondChoiceSelect', 'thirdChoiceSelect'];
+        ids.forEach(id => {
+            document.getElementById(id).innerHTML = `<option value="">${message}</option>`;
+        });
+    }
+</script>
+</body>
+</html>
