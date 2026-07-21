@@ -19,7 +19,7 @@ app.use(session({
 }));
 
 const CLIENT_ID = '3MVG9dAEux2v1sLsanaEKCjSSQ_G6jr2tf1UfoqoDaatPadDVlk4FSQpA4LkkAvD.dllUdAmKjYqhObcyhpLV';
-const REDIRECT_URI = 'https://salesforce-app-4-wwtz.onrender.com/oauth2/callback';
+const REDIRECT_URI = 'https://salesforce-app-4.onrender.com/oauth2/callback';
 const SF_LOGIN_URL = 'https://login.salesforce.com';
 
 const ADMIN_USERNAME = 'admin';
